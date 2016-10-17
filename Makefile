@@ -9,10 +9,11 @@ build:
 # to be transfered to the client.  Notice udp://VPN.SERVERNAME.COM should 
 # point to the server hosting openvpn server
 configure:
-	(docker rm ovpn-data && echo "Removed old data, please run command again") || \
+	(docker rm ${DATA_VOL} && echo "Removed old data, please run command again") || \
 	docker run --name ${DATA_VOL} -v /etc/openvpn busybox && \
 	docker run --volumes-from ${DATA_VOL} --rm ${USER}/${DOCKER_IMAGE_NAME} ovpn_genconfig -u udp://VPN.SERVERNAME.COM && \
-	docker run --volumes-from ${DATA_VOL} --rm -it ${USER}/${DOCKER_IMAGE_NAME} ovpn_initpki && \
+	docker run --volumes-from ${DATA_VOL} -e EASYRSA_KEY_SIZE=4096 --rm -it ${USER}/${DOCKER_IMAGE_NAME} ovpn_initpki && \
+  \
   docker run --volumes-from ${DATA_VOL} --rm -it ${USER}/${DOCKER_IMAGE_NAME} easyrsa build-client-full CLIENTNAME nopass && \
   docker run --volumes-from ${DATA_VOL} --rm ${USER}/${DOCKER_IMAGE_NAME} ovpn_getclient CLIENTNAME > CLIENTNAME.ovpn
 
